@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "265643527010",
+    "project_id": "claygo-app",
+    "storage_bucket": "claygo-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:265643527010:android:b3524ced5150617328fa3b",
+        "android_client_info": {
+          "package_name": "com.dvt.claygo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbgRAeMZaKcYEtFvr1R6adoS3x4kkY42E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

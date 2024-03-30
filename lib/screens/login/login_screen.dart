@@ -1,4 +1,3 @@
-import 'package:claygo_app/screens/screens.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -72,7 +71,7 @@ class LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 50),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed(ScreenNames.home);
+                // Navigator.of(context).pushNamed(ScreenNames.home);
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(200, 0),

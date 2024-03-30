@@ -1,15 +1,15 @@
 import 'package:claygo_app/screens/screens_name.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({
+class TableScreen extends StatefulWidget {
+  const TableScreen({
     super.key,
   });
   @override
-  State<HomeScreen> createState() => HomeScreenState();
+  State<TableScreen> createState() => TableScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class TableScreenState extends State<TableScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,7 +17,7 @@ class HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         title: const Text(
-          "Home",
+          "Table",
         ),
       ),
       body: SingleChildScrollView(
@@ -47,12 +47,12 @@ class HomeScreenState extends State<HomeScreen> {
             _buildItem(
               icon: Icons.data_usage,
               label: "Usage Count",
-              endLabel: "1",
+              endLabel: "0/10",
               onTap: () {},
             ),
             _buildItem(
               icon: Icons.restore,
-              label: "Reset",
+              label: "Reset Table",
               onTap: () {},
             ),
             // _buildItem(

@@ -1,4 +1,4 @@
-package com.example.claygo_app
+package com.dvt.claygo_app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -18,7 +18,7 @@ class InitialScreenState extends State<InitialScreen> {
     super.initState();
     Timer(
       const Duration(seconds: 1),
-      () => Navigator.pushNamed(context, ScreenNames.login),
+      () => Navigator.pushNamed(context, ScreenNames.tables),
     );
   }
 
