@@ -1,4 +1,4 @@
-class ScreenNames {
+class RouteNames {
   static const String table = "/table";
   static const String login = "/login";
   static const String waterLevel = "/water-level";

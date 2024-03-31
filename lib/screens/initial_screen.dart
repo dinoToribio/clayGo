@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'screens/screens.dart';
+import 'screens.dart';
 
 // The page where all logic starts
 class InitialScreen extends StatefulWidget {
@@ -12,13 +12,17 @@ class InitialScreen extends StatefulWidget {
   State<InitialScreen> createState() => InitialScreenState();
 }
 
-class InitialScreenState extends State<InitialScreen> {
+class InitialScreenState extends State<InitialScreen> { 
   @override
   void initState() {
     super.initState();
     Timer(
       const Duration(seconds: 1),
-      () => Navigator.pushNamed(context, ScreenNames.tables),
+      () => Navigator.pushNamedAndRemoveUntil(
+        context,
+        RouteNames.tables,
+        (route) => false,
+      ),
     );
   }
 

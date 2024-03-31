@@ -1,4 +1,4 @@
-import 'package:claygo_app/screens/screens_name.dart';
+import 'package:claygo_app/routes/route_names.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:claygo_app/data/data.dart' as data;
@@ -14,17 +14,6 @@ class TablesScreenState extends State<TablesScreen> {
   ///This variables will be used for storing tables from FireStore
   List<data.Table> tables = [];
 
-  void parseFireStoreTables(
-      QuerySnapshot<Map<String, dynamic>>? snapshot) async {
-    tables.clear();
-    if (snapshot != null) {
-      for (var doc in snapshot.docs) {
-        final table = data.Table.fromSnapshot(doc);
-        tables.add(table);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,13 +23,14 @@ class TablesScreenState extends State<TablesScreen> {
         title: const Text(
           "Tables",
         ),
+        centerTitle: true,
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection("tables").snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if ((snapshot.data?.docs ?? []).isNotEmpty) {
-              parseFireStoreTables(snapshot.data);
+              tables = data.TablesRepository.parseTables(snapshot.data);
               return _buildTables();
             }
             return _buildNoTable();
@@ -50,6 +40,15 @@ class TablesScreenState extends State<TablesScreen> {
             return _buildLoading();
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        child: const Icon(
+          Icons.add,
+          size: 25,
+        ),
       ),
     );
   }
@@ -101,9 +100,9 @@ class TablesScreenState extends State<TablesScreen> {
         final table = tables[index];
         return _buildTable(
           label: table.name,
-          waterLevelLabel: "",
-          dirtLevelLabel: "",
-          usageCountLabel: "0/${table.maxUsage}",
+          waterLevelLabel: "${table.waterLevel}% left",
+          dirtLevelLabel: "${table.dirtLevel}%",
+          usageCountLabel: "${table.usageCount}/${table.maxUsageCount}",
         );
       },
     );
@@ -134,7 +133,7 @@ class TablesScreenState extends State<TablesScreen> {
   }) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushNamed(ScreenNames.table);
+        Navigator.of(context).pushNamed(RouteNames.table);
       },
       child: Container(
         margin: const EdgeInsets.symmetric(
@@ -152,41 +151,63 @@ class TablesScreenState extends State<TablesScreen> {
             color: Colors.blue,
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(
-                  Icons.table_restaurant_outlined,
-                  size: 35,
-                  color: Colors.blue,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.table_restaurant_outlined,
+                      size: 30,
+                      color: Colors.blue,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 15),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildTableButtons(
+                      icon: Icons.edit,
+                      iconColor: Colors.black,
+                      onTap: () {},
+                    ),
+                    const SizedBox(width: 10),
+                    _buildTableButtons(
+                      icon: Icons.delete,
+                      iconColor: Colors.black,
+                      onTap: () {},
+                    ),
+                  ],
+                )
               ],
             ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
+            const Divider(thickness: 1),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildTableMiniStatus(
                   icon: Icons.water_drop,
                   label: waterLevelLabel,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(width: 4),
                 _buildTableMiniStatus(
                   icon: Icons.delete,
                   label: dirtLevelLabel,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(width: 4),
                 _buildTableMiniStatus(
                   icon: Icons.data_usage,
                   label: usageCountLabel,
@@ -221,6 +242,27 @@ class TablesScreenState extends State<TablesScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTableButtons({
+    required IconData icon,
+    required Color iconColor,
+    required Function()? onTap,
+  }) {
+    const double size = 20;
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        height: size,
+        width: size,
+        child: FittedBox(
+          child: Icon(
+            icon,
+            color: iconColor,
+          ),
+        ),
+      ),
     );
   }
 }

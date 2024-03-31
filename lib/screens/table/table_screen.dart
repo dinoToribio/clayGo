@@ -1,4 +1,4 @@
-import 'package:claygo_app/screens/screens_name.dart';
+import 'package:claygo_app/routes/route_names.dart';
 import 'package:flutter/material.dart';
 
 class TableScreen extends StatefulWidget {
@@ -30,7 +30,7 @@ class TableScreenState extends State<TableScreen> {
               endLabel: "76%",
               onTap: () {
                 Navigator.of(context).pushNamed(
-                  ScreenNames.waterLevel,
+                  RouteNames.waterLevel,
                 );
               },
             ),
@@ -40,7 +40,7 @@ class TableScreenState extends State<TableScreen> {
               endLabel: "25%",
               onTap: () {
                 Navigator.of(context).pushNamed(
-                  ScreenNames.dirtLevel,
+                  RouteNames.dirtLevel,
                 );
               },
             ),

@@ -1,6 +1,6 @@
 import 'package:claygo_app/firebase_options.dart';
-import 'package:claygo_app/initial_screen.dart';
-import 'package:claygo_app/routes.dart';
+import 'package:claygo_app/screens/initial_screen.dart';
+import 'package:claygo_app/routes/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
