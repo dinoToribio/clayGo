@@ -1,4 +1,5 @@
 import 'package:claygo_app/screens/screens.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:claygo_app/data/data.dart' as data;
 
@@ -12,6 +13,21 @@ class TableScreen extends StatefulWidget {
 
 class TableScreenState extends State<TableScreen> {
   data.Table? table;
+  ValueNotifier<bool> showRedHighlight = ValueNotifier(false);
+
+  checkTableIfWorstCondition() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (table != null) {
+        if (table!.dirtLevel == 100 ||
+            table!.waterLevel == 0 ||
+            table!.usageCount == 0) {
+          showRedHighlight.value = true;
+        } else {
+          showRedHighlight.value = false;
+        }
+      }
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -23,64 +39,92 @@ class TableScreenState extends State<TableScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        title: Text(
-          table?.name ?? '',
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            _buildItem(
-              icon: Icons.water,
-              label: "Water Level",
-              endLabel: "${table?.waterLevel ?? 0}%",
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  RouteNames.waterLevelLogs,
-                  arguments: WaterLevelLogsScreenArguments(
-                    table: table,
-                  ),
-                );
-              },
+    return ValueListenableBuilder(
+      valueListenable: showRedHighlight,
+      builder: (context, bool showRed, child) {
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: showRed ? Colors.red : Colors.blue,
+            foregroundColor: Colors.white,
+            title: Text(
+              table?.name ?? '',
             ),
-            _buildItem(
-              icon: Icons.delete,
-              label: "Dirt Level",
-              endLabel: "${table?.dirtLevel ?? 0}%",
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  RouteNames.dirtLevelLogs,
-                  arguments: DirtLevelLogsScreenArguments(
-                    table: table,
-                  ),
-                );
-              },
-            ),
-            _buildItem(
-              icon: Icons.data_usage,
-              label: "Usage Count",
-              endLabel: "${table?.usageCount ?? 0}/${table?.maxUsageCount}",
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  RouteNames.usageCountLogs,
-                  arguments: UsageCountLogsScreenArguments(
-                    table: table,
-                  ),
-                );
-              },
-            ),
-            _buildItem(
-              icon: Icons.restore,
-              label: "Reset Table",
-              onTap: () {},
-            ),
-          ],
-        ),
+          ),
+          body: table != null
+              ? StreamBuilder(
+                  stream:
+                      data.TablesRepository.getTable(tableId: table?.id ?? ''),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      table = snapshot.data;
+                      checkTableIfWorstCondition();
+                      return _buildTableItems();
+                    } else if (snapshot.hasError) {
+                      return _buildError();
+                    } else {
+                      return _buildLoading();
+                    }
+                  },
+                )
+              : const SizedBox(),
+        );
+      },
+    );
+  }
+
+  Widget _buildTableItems() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 40),
+          _buildItem(
+            icon: Icons.water,
+            label: "Water Level",
+            endLabel: "${table?.waterLevel ?? 0}%",
+            showRedHighlight: (table?.waterLevel ?? 0) == 0,
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                RouteNames.waterLevelLogs,
+                arguments: WaterLevelLogsScreenArguments(
+                  table: table,
+                ),
+              );
+            },
+          ),
+          _buildItem(
+            icon: Icons.delete,
+            label: "Dirt Level",
+            endLabel: "${table?.dirtLevel ?? 0}%",
+            showRedHighlight: (table?.dirtLevel ?? 0) == 100,
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                RouteNames.dirtLevelLogs,
+                arguments: DirtLevelLogsScreenArguments(
+                  table: table,
+                ),
+              );
+            },
+          ),
+          _buildItem(
+            icon: Icons.data_usage,
+            label: "Usage Count",
+            endLabel: "${table?.usageCount ?? 0}/${table?.maxUsageCount}",
+            showRedHighlight: (table?.usageCount ?? 0) == 0,
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                RouteNames.usageCountLogs,
+                arguments: UsageCountLogsScreenArguments(
+                  table: table,
+                ),
+              );
+            },
+          ),
+          _buildItem(
+            icon: Icons.restore,
+            label: "Reset Table",
+            onTap: () {},
+          ),
+        ],
       ),
     );
   }
@@ -90,6 +134,7 @@ class TableScreenState extends State<TableScreen> {
     required String label,
     required Function()? onTap,
     String? endLabel,
+    bool showRedHighlight = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -105,14 +150,18 @@ class TableScreenState extends State<TableScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
-            color: Colors.blue,
+            color: showRedHighlight ? Colors.red : Colors.blue,
             width: 2,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Icon(icon, size: 30, color: Colors.blue),
+            Icon(
+              icon,
+              size: 30,
+              color: showRedHighlight ? Colors.red : Colors.blue,
+            ),
             const SizedBox(width: 20),
             Text(
               label,
@@ -130,15 +179,55 @@ class TableScreenState extends State<TableScreen> {
                 endLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.black,
+                style: TextStyle(
+                  color: showRedHighlight ? Colors.red : Colors.black,
                   fontSize: 17,
-                  fontWeight: FontWeight.w400,
+                  fontWeight:
+                      showRedHighlight ? FontWeight.w500 : FontWeight.w400,
                 ),
               ),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return const Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "Sorry, something went wrong in fetching the table.",
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+              color: Colors.red,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(
+            color: Colors.blue,
+          ),
+          SizedBox(height: 20),
+          Text(
+            "Fetching tables",
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -110,4 +110,19 @@ class TablesRepository {
       return FirestoreStatuses.failed;
     }
   }
+
+  static Stream<Table> getTable({
+    required String tableId,
+  }) {
+    return FirebaseFirestore.instance
+        .collection("tables")
+        .doc(tableId)
+        .snapshots()
+        .map(
+          (DocumentSnapshot<Map<String, dynamic>> snapshot) => Table.fromMap(
+            snapshot.data()!,
+            reference: snapshot.reference,
+          ),
+        );
+  }
 }

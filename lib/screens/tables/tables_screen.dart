@@ -252,6 +252,10 @@ class TablesScreenState extends State<TablesScreen> {
     required String dirtLevelLabel,
     required String usageCountLabel,
   }) {
+    bool showRedHighlight = table.usageCount == 0 ||
+        table.dirtLevel == 100 ||
+        table.waterLevel == 0;
+    final tableColor = showRedHighlight ? Colors.red : Colors.blue;
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pushNamed(
@@ -273,8 +277,8 @@ class TablesScreenState extends State<TablesScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            width: 1,
-            color: Colors.blue,
+            width: showRedHighlight ? 2.5 : 1,
+            color: tableColor,
           ),
         ),
         child: Column(
@@ -286,10 +290,10 @@ class TablesScreenState extends State<TablesScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.table_restaurant_outlined,
                       size: 30,
-                      color: Colors.blue,
+                      color: tableColor,
                     ),
                     const SizedBox(width: 10),
                     Text(
@@ -331,16 +335,19 @@ class TablesScreenState extends State<TablesScreen> {
                 _buildTableMiniStatus(
                   icon: Icons.water_drop,
                   label: waterLevelLabel,
+                  showRedHighlight: table.waterLevel == 0,
                 ),
                 const SizedBox(width: 4),
                 _buildTableMiniStatus(
                   icon: Icons.delete,
                   label: dirtLevelLabel,
+                  showRedHighlight: table.dirtLevel == 100,
                 ),
                 const SizedBox(width: 4),
                 _buildTableMiniStatus(
                   icon: Icons.data_usage,
                   label: usageCountLabel,
+                  showRedHighlight: table.usageCount == 0,
                 ),
               ],
             ),
@@ -353,6 +360,7 @@ class TablesScreenState extends State<TablesScreen> {
   Widget _buildTableMiniStatus({
     required IconData icon,
     required String label,
+    required bool showRedHighlight,
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -360,13 +368,13 @@ class TablesScreenState extends State<TablesScreen> {
         Icon(
           icon,
           size: 15,
-          color: Colors.blue,
+          color: showRedHighlight ? Colors.red : Colors.blue,
         ),
         const SizedBox(width: 5),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.black,
+          style: TextStyle(
+            color: showRedHighlight ? Colors.red : Colors.black,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
