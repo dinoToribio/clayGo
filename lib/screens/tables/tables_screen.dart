@@ -1,4 +1,6 @@
-import 'package:claygo_app/routes/route_names.dart';
+import 'package:claygo_app/data/statuses/statuses.dart';
+import 'package:claygo_app/screens/screens.dart';
+import 'package:claygo_app/widgets/toast/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:claygo_app/data/data.dart' as data;
@@ -11,8 +13,86 @@ class TablesScreen extends StatefulWidget {
 }
 
 class TablesScreenState extends State<TablesScreen> {
+  TextEditingController tableNameTextfield = TextEditingController(text: "");
+  TextEditingController tableMaxUsageCountTextfield =
+      TextEditingController(text: "");
+
   ///This variables will be used for storing tables from FireStore
   List<data.Table> tables = [];
+
+  Future<void> addTable(BuildContext context) async {
+    final status = await data.TablesRepository.addTable(
+      name: tableNameTextfield.text,
+      maxUsageCount: int.parse(tableMaxUsageCountTextfield.text),
+    );
+    if (mounted) {
+      if (status == FirestoreStatuses.success) {
+        tableNameTextfield.text = "";
+        tableMaxUsageCountTextfield.text = "";
+        Navigator.of(context).pop();
+        Toast.showSuccessMsg(
+          context: context,
+          message: "Table Added Successfully",
+        );
+      } else {
+        Toast.showErrorMsg(
+          context: context,
+          message: "Sorry, adding the table failed. Try again later.",
+        );
+      }
+    }
+  }
+
+  Future<void> deleteTable({
+    required data.Table table,
+  }) async {
+    final status = await data.TablesRepository.deleteTable(table: table);
+    if (mounted) {
+      if (status == FirestoreStatuses.success) {
+        Navigator.of(context).pop();
+        Toast.showSuccessMsg(
+          context: context,
+          message: "Table Deleted Successfully",
+        );
+      } else {
+        Toast.showErrorMsg(
+          context: context,
+          message: "Sorry, deleting the table failed. Try again later.",
+        );
+      }
+    }
+  }
+
+  Future<void> updateTable({
+    required data.Table table,
+  }) async {
+    final status = await data.TablesRepository.updateTable(
+      table: table,
+      name: tableNameTextfield.text,
+      maxUsageCount: int.parse(tableMaxUsageCountTextfield.text),
+    );
+    if (mounted) {
+      if (status == FirestoreStatuses.success) {
+        Navigator.of(context).pop();
+        Toast.showSuccessMsg(
+          context: context,
+          message: "Table Updated Successfully",
+        );
+      } else {
+        Toast.showErrorMsg(
+          context: context,
+          message: "Sorry, updating the table failed. Try again later.",
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    tableMaxUsageCountTextfield.dispose();
+    tableNameTextfield.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +106,13 @@ class TablesScreenState extends State<TablesScreen> {
         centerTitle: true,
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection("tables").snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection("tables")
+            .orderBy(
+              "created_datetime",
+              descending: true,
+            )
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if ((snapshot.data?.docs ?? []).isNotEmpty) {
@@ -42,12 +128,45 @@ class TablesScreenState extends State<TablesScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _showAddTableDialog();
+        },
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         child: const Icon(
           Icons.add,
           size: 25,
+        ),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const SizedBox(
+              height: 100,
+              child: DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text(
+                  'ClayGo App',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              title: const Text('Instructions'),
+              onTap: () {},
+            ),
+            ListTile(
+              title: const Text('About'),
+              onTap: () {},
+            ),
+          ],
         ),
       ),
     );
@@ -94,11 +213,12 @@ class TablesScreenState extends State<TablesScreen> {
 
   Widget _buildTables() {
     return ListView.builder(
-      padding: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.only(top: 20, bottom: 100),
       itemCount: tables.length,
       itemBuilder: (context, index) {
         final table = tables[index];
         return _buildTable(
+          table: table,
           label: table.name,
           waterLevelLabel: "${table.waterLevel}% left",
           dirtLevelLabel: "${table.dirtLevel}%",
@@ -126,6 +246,7 @@ class TablesScreenState extends State<TablesScreen> {
   }
 
   Widget _buildTable({
+    required data.Table table,
     required String label,
     required String waterLevelLabel,
     required String dirtLevelLabel,
@@ -133,7 +254,12 @@ class TablesScreenState extends State<TablesScreen> {
   }) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushNamed(RouteNames.table);
+        Navigator.of(context).pushNamed(
+          RouteNames.table,
+          arguments: TablesScreenArguments(
+            table: table,
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.symmetric(
@@ -182,13 +308,17 @@ class TablesScreenState extends State<TablesScreen> {
                     _buildTableButtons(
                       icon: Icons.edit,
                       iconColor: Colors.black,
-                      onTap: () {},
+                      onTap: () {
+                        _showEditTableDialog(table: table);
+                      },
                     ),
                     const SizedBox(width: 10),
                     _buildTableButtons(
                       icon: Icons.delete,
                       iconColor: Colors.black,
-                      onTap: () {},
+                      onTap: () {
+                        _showDeleteTableDialog(table: table);
+                      },
                     ),
                   ],
                 )
@@ -263,6 +393,172 @@ class TablesScreenState extends State<TablesScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  //Dialogs
+  void _showAddTableDialog() async {
+    tableNameTextfield.clear();
+    tableMaxUsageCountTextfield.clear();
+    await showDialog(
+      builder: (context) => AlertDialog(
+        contentPadding: const EdgeInsets.all(25),
+        actionsPadding: const EdgeInsets.all(5),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextField(
+                    controller: tableNameTextfield,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Name',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: tableMaxUsageCountTextfield,
+                    autofocus: false,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Max usage count',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('CANCEL'),
+            onPressed: () {
+              tableNameTextfield.text = "";
+              tableMaxUsageCountTextfield.text = "";
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: const Text('ADD Table'),
+            onPressed: () {
+              if (tableNameTextfield.text.isNotEmpty &&
+                  tableMaxUsageCountTextfield.text.isNotEmpty) {
+                addTable(context);
+              }
+            },
+          ),
+        ],
+      ),
+      context: context,
+    );
+  }
+
+  //Dialogs
+  void _showEditTableDialog({
+    required data.Table table,
+  }) async {
+    tableNameTextfield.text = table.name;
+    tableMaxUsageCountTextfield.text = table.maxUsageCount.toString();
+    await showDialog(
+      builder: (context) => AlertDialog(
+        contentPadding: const EdgeInsets.all(25),
+        actionsPadding: const EdgeInsets.all(5),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextField(
+                    controller: tableNameTextfield,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Name',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: tableMaxUsageCountTextfield,
+                    autofocus: false,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Max usage count',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('CANCEL'),
+            onPressed: () {
+              tableNameTextfield.text = "";
+              tableMaxUsageCountTextfield.text = "";
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: const Text('Update Table'),
+            onPressed: () {
+              if (tableNameTextfield.text.isNotEmpty &&
+                  tableMaxUsageCountTextfield.text.isNotEmpty) {
+                if (tableNameTextfield.text.toLowerCase() !=
+                        table.name.toLowerCase() ||
+                    tableMaxUsageCountTextfield.text !=
+                        table.maxUsageCount.toString()) {
+                  updateTable(table: table);
+                }
+              }
+            },
+          ),
+        ],
+      ),
+      context: context,
+    );
+  }
+
+  void _showDeleteTableDialog({
+    required data.Table table,
+  }) async {
+    await showDialog(
+      builder: (context) => AlertDialog(
+        contentPadding: const EdgeInsets.all(30),
+        content: Text("Do you really want to delete ${table.name}?"),
+        actionsPadding: const EdgeInsets.all(5),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: const Text('Delete'),
+            onPressed: () {
+              deleteTable(table: table);
+            },
+          ),
+        ],
+      ),
+      context: context,
     );
   }
 }

@@ -7,16 +7,21 @@ import 'package:flutter/material.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-  options: DefaultFirebaseOptions.currentPlatform,
-);
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const ClayGoApp());
 }
+
 class ClayGoApp extends StatelessWidget {
   const ClayGoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(
+    return MaterialApp(
+      color: Colors.blue,
+      theme: ThemeData(
+        primaryColor: Colors.blue,
+      ),
       home: const InitialScreen(),
       routes: routes,
     );

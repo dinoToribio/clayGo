@@ -1,5 +1,6 @@
-import 'package:claygo_app/routes/route_names.dart';
+import 'package:claygo_app/screens/screens.dart';
 import 'package:flutter/material.dart';
+import 'package:claygo_app/data/data.dart' as data;
 
 class TableScreen extends StatefulWidget {
   const TableScreen({
@@ -10,14 +11,24 @@ class TableScreen extends StatefulWidget {
 }
 
 class TableScreenState extends State<TableScreen> {
+  data.Table? table;
+
+  @override
+  void didChangeDependencies() {
+    final arguments =
+        ModalRoute.of(context)?.settings.arguments as TablesScreenArguments;
+    table = arguments.table;
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        title: const Text(
-          "Table",
+        title: Text(
+          table?.name ?? '',
         ),
       ),
       body: SingleChildScrollView(
@@ -27,39 +38,47 @@ class TableScreenState extends State<TableScreen> {
             _buildItem(
               icon: Icons.water,
               label: "Water Level",
-              endLabel: "76%",
+              endLabel: "${table?.waterLevel ?? 0}%",
               onTap: () {
                 Navigator.of(context).pushNamed(
-                  RouteNames.waterLevel,
+                  RouteNames.waterLevelLogs,
+                  arguments: WaterLevelLogsScreenArguments(
+                    table: table,
+                  ),
                 );
               },
             ),
             _buildItem(
               icon: Icons.delete,
               label: "Dirt Level",
-              endLabel: "25%",
+              endLabel: "${table?.dirtLevel ?? 0}%",
               onTap: () {
                 Navigator.of(context).pushNamed(
-                  RouteNames.dirtLevel,
+                  RouteNames.dirtLevelLogs,
+                  arguments: DirtLevelLogsScreenArguments(
+                    table: table,
+                  ),
                 );
               },
             ),
             _buildItem(
               icon: Icons.data_usage,
               label: "Usage Count",
-              endLabel: "0/10",
-              onTap: () {},
+              endLabel: "${table?.usageCount ?? 0}/${table?.maxUsageCount}",
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  RouteNames.usageCountLogs,
+                  arguments: UsageCountLogsScreenArguments(
+                    table: table,
+                  ),
+                );
+              },
             ),
             _buildItem(
               icon: Icons.restore,
               label: "Reset Table",
               onTap: () {},
             ),
-            // _buildItem(
-            //   icon: Icons.system_update,
-            //   label: "System logs",
-            //   onTap: () {},
-            // ),
           ],
         ),
       ),

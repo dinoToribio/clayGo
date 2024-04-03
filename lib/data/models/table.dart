@@ -11,6 +11,10 @@ class Table {
 
   Table.fromMap(Map<String, dynamic> map, {required this.reference})
       : assert(map['name'] != null),
+        assert(map['max_usage_count'] != null),
+        assert(map['water_level'] != null),
+        assert(map['dirt_level'] != null),
+        assert(map['usage_count'] != null),
         id = reference.id,
         name = map['name'],
         maxUsageCount = map['max_usage_count'],
@@ -20,6 +24,8 @@ class Table {
 
   Table.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>?> snapshot)
       : this.fromMap(snapshot.data() ?? {}, reference: snapshot.reference);
+      
   @override
-  String toString() => "Table<id=$id,name=$name,max_usage_count=$maxUsageCount,usage_count=>$usageCount, water_level=>$waterLevel, dirt_level=>$dirtLevel>";
+  String toString() =>
+      "Table<id=$id,name=$name,max_usage_count=$maxUsageCount,usage_count=>$usageCount, water_level=>$waterLevel, dirt_level=>$dirtLevel>";
 }
