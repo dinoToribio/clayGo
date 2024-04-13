@@ -1,4 +1,6 @@
+import 'package:claygo_app/data/data.dart';
 import 'package:claygo_app/screens/screens.dart';
+import 'package:claygo_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:claygo_app/data/data.dart' as data;
 
@@ -26,6 +28,26 @@ class TableScreenState extends State<TableScreen> {
         }
       }
     });
+  }
+
+  Future<void> resetTable({
+    required data.Table table,
+  }) async {
+    final status = await data.TablesRepository.resetTableUsageCount(table: table);
+    if (mounted) {
+      if (status == FirestoreStatuses.success) {
+        Navigator.of(context).pop();
+        Toast.showSuccessMsg(
+          context: context,
+          message: "Table Reset Completed",
+        );
+      } else {
+        Toast.showErrorMsg(
+          context: context,
+          message: "Sorry, resetting the table failed. Try again later.",
+        );
+      }
+    }
   }
 
   @override
@@ -121,7 +143,11 @@ class TableScreenState extends State<TableScreen> {
           _buildItem(
             icon: Icons.restore,
             label: "Reset Table",
-            onTap: () {},
+            onTap: () {
+              if (table != null) {
+                _showResetTableUsageCountDialog(table: table!);
+              }
+            },
           ),
         ],
       ),
@@ -228,6 +254,33 @@ class TableScreenState extends State<TableScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showResetTableUsageCountDialog({
+    required data.Table table,
+  }) async {
+    await showDialog(
+      builder: (context) => AlertDialog(
+        contentPadding: const EdgeInsets.all(30),
+        content: Text("Do you really want to reset ${table.name}?"),
+        actionsPadding: const EdgeInsets.all(5),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: const Text('Reset'),
+            onPressed: () {
+              resetTable(table: table);
+            },
+          ),
+        ],
+      ),
+      context: context,
     );
   }
 }

@@ -115,4 +115,29 @@ class TablesRepository {
           ),
         );
   }
+
+  static Future<String?> resetTableUsageCount({
+    required Table table,
+  }) async {
+    try {
+      final tableToBeUpdated =
+          FirebaseFirestore.instance.collection("tables").doc(table.id);
+
+      final usageCount = table.maxUsageCount;
+
+      await tableToBeUpdated.update({
+        "usage_count": usageCount,
+      });
+
+      await tableToBeUpdated.collection("usage_count_logs").add({
+        "count": usageCount,
+        "max_count": usageCount,
+        "created_datetime": Timestamp.now(),
+      });
+
+      return FirestoreStatuses.success;
+    } catch (e) {
+      return FirestoreStatuses.failed;
+    }
+  }
 }
