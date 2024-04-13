@@ -1,5 +1,4 @@
 import 'package:claygo_app/screens/screens.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:claygo_app/data/data.dart' as data;
 

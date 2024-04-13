@@ -14,8 +14,9 @@ class TablesScreen extends StatefulWidget {
 
 class TablesScreenState extends State<TablesScreen> {
   TextEditingController tableNameTextfield = TextEditingController(text: "");
-  TextEditingController tableMaxUsageCountTextfield =
-      TextEditingController(text: "");
+  
+  //Edit here to change the maxUsageCount
+  int maxUsageCount = 5;
 
   ///This variables will be used for storing tables from FireStore
   List<data.Table> tables = [];
@@ -23,12 +24,11 @@ class TablesScreenState extends State<TablesScreen> {
   Future<void> addTable(BuildContext context) async {
     final status = await data.TablesRepository.addTable(
       name: tableNameTextfield.text,
-      maxUsageCount: int.parse(tableMaxUsageCountTextfield.text),
+      maxUsageCount: maxUsageCount,
     );
     if (mounted) {
       if (status == FirestoreStatuses.success) {
         tableNameTextfield.text = "";
-        tableMaxUsageCountTextfield.text = "";
         Navigator.of(context).pop();
         Toast.showSuccessMsg(
           context: context,
@@ -69,7 +69,6 @@ class TablesScreenState extends State<TablesScreen> {
     final status = await data.TablesRepository.updateTable(
       table: table,
       name: tableNameTextfield.text,
-      maxUsageCount: int.parse(tableMaxUsageCountTextfield.text),
     );
     if (mounted) {
       if (status == FirestoreStatuses.success) {
@@ -89,7 +88,6 @@ class TablesScreenState extends State<TablesScreen> {
 
   @override
   void dispose() {
-    tableMaxUsageCountTextfield.dispose();
     tableNameTextfield.dispose();
     super.dispose();
   }
@@ -129,7 +127,8 @@ class TablesScreenState extends State<TablesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddTableDialog();
+          //uncomment this when you need add table function
+          // _showAddTableDialog();
         },
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
@@ -405,77 +404,60 @@ class TablesScreenState extends State<TablesScreen> {
   }
 
   //Dialogs
-  void _showAddTableDialog() async {
-    tableNameTextfield.clear();
-    tableMaxUsageCountTextfield.clear();
-    await showDialog(
-      builder: (context) => AlertDialog(
-        contentPadding: const EdgeInsets.all(25),
-        actionsPadding: const EdgeInsets.all(5),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextField(
-                    controller: tableNameTextfield,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: tableMaxUsageCountTextfield,
-                    autofocus: false,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Max usage count',
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('CANCEL'),
-            onPressed: () {
-              tableNameTextfield.text = "";
-              tableMaxUsageCountTextfield.text = "";
-              Navigator.pop(context);
-            },
-          ),
-          TextButton(
-            child: const Text('ADD Table'),
-            onPressed: () {
-              if (tableNameTextfield.text.isNotEmpty &&
-                  tableMaxUsageCountTextfield.text.isNotEmpty) {
-                addTable(context);
-              }
-            },
-          ),
-        ],
-      ),
-      context: context,
-    );
-  }
+
+  // Uncomment when need add table function
+  // void _showAddTableDialog() async {
+  //   tableNameTextfield.clear();
+  //   await showDialog(
+  //     builder: (context) => AlertDialog(
+  //       contentPadding: const EdgeInsets.all(25),
+  //       actionsPadding: const EdgeInsets.all(5),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Row(
+  //             children: <Widget>[
+  //               Expanded(
+  //                 child: TextField(
+  //                   controller: tableNameTextfield,
+  //                   autofocus: true,
+  //                   decoration: const InputDecoration(
+  //                     labelText: 'Name',
+  //                     floatingLabelBehavior: FloatingLabelBehavior.always,
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ],
+  //       ),
+  //       actions: <Widget>[
+  //         TextButton(
+  //           child: const Text('CANCEL'),
+  //           onPressed: () {
+  //             tableNameTextfield.text = "";
+  //             Navigator.pop(context);
+  //           },
+  //         ),
+  //         TextButton(
+  //           child: const Text('ADD Table'),
+  //           onPressed: () {
+  //             if (tableNameTextfield.text.isNotEmpty) {
+  //               addTable(context);
+  //             }
+  //           },
+  //         ),
+  //       ],
+  //     ),
+  //     context: context,
+  //   );
+  // }
 
   //Dialogs
   void _showEditTableDialog({
     required data.Table table,
   }) async {
     tableNameTextfield.text = table.name;
-    tableMaxUsageCountTextfield.text = table.maxUsageCount.toString();
     await showDialog(
       builder: (context) => AlertDialog(
         contentPadding: const EdgeInsets.all(25),
@@ -497,21 +479,6 @@ class TablesScreenState extends State<TablesScreen> {
                 ),
               ],
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: tableMaxUsageCountTextfield,
-                    autofocus: false,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Max usage count',
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
         actions: <Widget>[
@@ -519,19 +486,15 @@ class TablesScreenState extends State<TablesScreen> {
             child: const Text('CANCEL'),
             onPressed: () {
               tableNameTextfield.text = "";
-              tableMaxUsageCountTextfield.text = "";
               Navigator.pop(context);
             },
           ),
           TextButton(
             child: const Text('Update Table'),
             onPressed: () {
-              if (tableNameTextfield.text.isNotEmpty &&
-                  tableMaxUsageCountTextfield.text.isNotEmpty) {
+              if (tableNameTextfield.text.isNotEmpty) {
                 if (tableNameTextfield.text.toLowerCase() !=
-                        table.name.toLowerCase() ||
-                    tableMaxUsageCountTextfield.text !=
-                        table.maxUsageCount.toString()) {
+                    table.name.toLowerCase()) {
                   updateTable(table: table);
                 }
               }

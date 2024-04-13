@@ -86,7 +86,6 @@ class TablesRepository {
   static Future<String?> updateTable({
     required Table table,
     required String name,
-    required int maxUsageCount,
   }) async {
     try {
       final tableToBeUpdated =
@@ -94,16 +93,7 @@ class TablesRepository {
 
       await tableToBeUpdated.update({
         "name": name,
-        "max_usage_count": maxUsageCount,
       });
-
-      if (table.maxUsageCount != maxUsageCount) {
-        await tableToBeUpdated.collection("usage_count_logs").add({
-          "count": table.usageCount,
-          "max_count": maxUsageCount,
-          "created_datetime": Timestamp.now(),
-        });
-      }
 
       return FirestoreStatuses.success;
     } catch (e) {
