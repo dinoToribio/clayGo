@@ -1,3 +1,4 @@
+import 'package:claygo_app/core/core.dart';
 import 'package:claygo_app/data/statuses/statuses.dart';
 import 'package:claygo_app/screens/screens.dart';
 import 'package:claygo_app/widgets/toast/toast.dart';
@@ -14,7 +15,7 @@ class TablesScreen extends StatefulWidget {
 
 class TablesScreenState extends State<TablesScreen> {
   TextEditingController tableNameTextfield = TextEditingController(text: "");
-  
+
   //Edit here to change the maxUsageCount
   int maxUsageCount = 5;
 
@@ -29,16 +30,20 @@ class TablesScreenState extends State<TablesScreen> {
     if (mounted) {
       if (status == FirestoreStatuses.success) {
         tableNameTextfield.text = "";
-        Navigator.of(context).pop();
-        Toast.showSuccessMsg(
-          context: context,
-          message: "Table Added Successfully",
-        );
+        if (context.mounted) Navigator.of(context).pop();
+        if (context.mounted) {
+          Toast.showSuccessMsg(
+            context: context,
+            message: "Table Added Successfully",
+          );
+        }
       } else {
-        Toast.showErrorMsg(
-          context: context,
-          message: "Sorry, adding the table failed. Try again later.",
-        );
+        if (context.mounted) {
+          Toast.showErrorMsg(
+            context: context,
+            message: "Sorry, adding the table failed. Try again later.",
+          );
+        }
       }
     }
   }
@@ -86,6 +91,43 @@ class TablesScreenState extends State<TablesScreen> {
     }
   }
 
+  //showNotification
+  void showNotifications() {
+    if (tables.isNotEmpty) {
+      for (var i = 0; i < tables.length; i++) {
+        final table = tables[i];
+        int statusCount = 0;
+        String status = "";
+        if (table.waterLevel == 0) {
+          status += "Water level: 0%";
+          statusCount++;
+        }
+
+        if (table.dirtLevel == 100) {
+          if (statusCount > 0) {
+            status += ', ';
+          }
+          status += "Dirt level: 100%";
+
+          statusCount++;
+        }
+
+        if (table.usageCount == 0) {
+          if (statusCount > 0) {
+            status += ', ';
+          }
+          status += "Usage count: 0";
+          statusCount++;
+        }
+
+        NotificationService.show(
+          title: table.name,
+          message: "$status. Please check the table immediately.",
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     tableNameTextfield.dispose();
@@ -115,6 +157,7 @@ class TablesScreenState extends State<TablesScreen> {
           if (snapshot.hasData) {
             if ((snapshot.data?.docs ?? []).isNotEmpty) {
               tables = data.TablesRepository.parseTables(snapshot.data);
+              showNotifications();
               return _buildTables();
             }
             return _buildNoTable();
