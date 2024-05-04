@@ -46,14 +46,39 @@ class DirtLevelLogsScreenState extends State<DirtLevelLogsScreen> {
                 color: Colors.blue,
               ),
               const SizedBox(width: 5),
-              Text(
-                "${table?.dirtLevel ?? 0}%",
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 35,
-                  fontWeight: FontWeight.w500,
+              StreamBuilder(
+                stream: data.TablesRepository.getTable(
+                  tableId: table?.id ?? '',
                 ),
-              )
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final tble = snapshot.data;
+                    return Text(
+                      "${tble?.dirtLevel ?? 0}%",
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 35,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Text(
+                      "Error!!!",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 35,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  }
+
+                  return const SizedBox(
+                    height: 10,
+                    width: 30,
+                    child: LinearProgressIndicator(),
+                  );
+                },
+              ),
             ],
           ),
           const SizedBox(height: 20),

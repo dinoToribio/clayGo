@@ -18,8 +18,8 @@ class WaterLevelLogsScreenState extends State<WaterLevelLogsScreen> {
 
   @override
   void didChangeDependencies() {
-    final arguments =
-        ModalRoute.of(context)?.settings.arguments as WaterLevelLogsScreenArguments;
+    final arguments = ModalRoute.of(context)?.settings.arguments
+        as WaterLevelLogsScreenArguments;
     table = arguments.table;
     super.didChangeDependencies();
   }
@@ -47,14 +47,39 @@ class WaterLevelLogsScreenState extends State<WaterLevelLogsScreen> {
                 color: Colors.blue,
               ),
               const SizedBox(width: 5),
-              Text(
-                "${table?.waterLevel ?? 0}%",
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 35,
-                  fontWeight: FontWeight.w500,
+              StreamBuilder(
+                stream: data.TablesRepository.getTable(
+                  tableId: table?.id ?? '',
                 ),
-              )
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final tble = snapshot.data;
+                    return Text(
+                      "${tble?.waterLevel ?? 0}%",
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 35,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Text(
+                      "Error!!!",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 35,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  }
+
+                  return const SizedBox(
+                    height: 10,
+                    width: 30,
+                    child: LinearProgressIndicator(),
+                  );
+                },
+              ),
             ],
           ),
           const SizedBox(height: 20),
