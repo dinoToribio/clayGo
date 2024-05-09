@@ -1,4 +1,5 @@
 import 'package:claygo_app/data/data.dart' as data;
+import 'package:claygo_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -40,12 +41,6 @@ class DirtLevelLogsScreenState extends State<DirtLevelLogsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.delete,
-                size: 30,
-                color: Colors.blue,
-              ),
-              const SizedBox(width: 5),
               StreamBuilder(
                 stream: data.TablesRepository.getTable(
                   tableId: table?.id ?? '',
@@ -53,13 +48,24 @@ class DirtLevelLogsScreenState extends State<DirtLevelLogsScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final tble = snapshot.data;
-                    return Text(
-                      "${tble?.dirtLevel ?? 0}%",
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 35,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    return Row(
+                      children: [
+                        DirtLevelIcon(
+                          height: 30,
+                          width: 25,
+                          isOnline: true,
+                          dirtLevel: table?.dirtLevel ?? 0,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          "${tble?.dirtLevel ?? 0}%",
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 35,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      ],
                     );
                   } else if (snapshot.hasError) {
                     return const Text(
@@ -164,12 +170,13 @@ class DirtLevelLogsScreenState extends State<DirtLevelLogsScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.delete,
-                size: 16,
-                color: Colors.blue,
+              DirtLevelIcon(
+                height: 13,
+                width: 9,
+                isOnline: true,
+                dirtLevel: level,
               ),
-              const SizedBox(width: 5),
+              const SizedBox(width: 7),
               Text(
                 "${level.toString()}%",
                 style: const TextStyle(

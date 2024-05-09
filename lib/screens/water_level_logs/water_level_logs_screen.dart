@@ -1,6 +1,7 @@
 import 'package:claygo_app/data/data.dart' as data;
 import 'package:claygo_app/data/models/water_level_log.dart';
 import 'package:claygo_app/screens/water_level_logs/models/water_level_logs_screen_arguments.dart';
+import 'package:claygo_app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -41,12 +42,6 @@ class WaterLevelLogsScreenState extends State<WaterLevelLogsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.water_drop,
-                size: 30,
-                color: Colors.blue,
-              ),
-              const SizedBox(width: 5),
               StreamBuilder(
                 stream: data.TablesRepository.getTable(
                   tableId: table?.id ?? '',
@@ -54,13 +49,24 @@ class WaterLevelLogsScreenState extends State<WaterLevelLogsScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final tble = snapshot.data;
-                    return Text(
-                      "${tble?.waterLevel ?? 0}%",
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 35,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    return Row(
+                      children: [
+                        WaterLevelIcon(
+                          height: 30,
+                          width: 25,
+                          isOnline: true,
+                          waterLevel: table?.waterLevel ?? 0,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          "${tble?.waterLevel ?? 0}%",
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 35,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      ],
                     );
                   } else if (snapshot.hasError) {
                     return const Text(
@@ -76,7 +82,7 @@ class WaterLevelLogsScreenState extends State<WaterLevelLogsScreen> {
                   return const SizedBox(
                     height: 10,
                     width: 30,
-                    child: LinearProgressIndicator(),
+                    child: CircularProgressIndicator(),
                   );
                 },
               ),
@@ -165,10 +171,11 @@ class WaterLevelLogsScreenState extends State<WaterLevelLogsScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.water_drop,
-                size: 16,
-                color: Colors.blue,
+              WaterLevelIcon(
+                height: 13,
+                width: 9,
+                isOnline: true,
+                waterLevel: level,
               ),
               const SizedBox(width: 5),
               Text(

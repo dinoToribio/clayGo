@@ -1,4 +1,5 @@
 import 'package:claygo_app/data/data.dart' as data;
+import 'package:claygo_app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -41,12 +42,6 @@ class UsageCountLogsScreenState extends State<UsageCountLogsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.data_usage,
-                size: 30,
-                color: Colors.blue,
-              ),
-              const SizedBox(width: 5),
               StreamBuilder(
                 stream: data.TablesRepository.getTable(
                   tableId: table?.id ?? '',
@@ -54,13 +49,25 @@ class UsageCountLogsScreenState extends State<UsageCountLogsScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final tble = snapshot.data;
-                    return Text(
-                      "${tble?.usageCount ?? 0}/${tble?.maxUsageCount ?? 0}",
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 35,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    return Row(
+                      children: [
+                        UsageCircularIcon(
+                          size: 25,
+                          strokeWidth: 5,
+                          isOnline: true,
+                          maxUsageCount: table?.maxUsageCount ?? 0,
+                          usageCount: table?.usageCount ?? 0,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          "${tble?.usageCount ?? 0}/${tble?.maxUsageCount ?? 0}",
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 35,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      ],
                     );
                   } else if (snapshot.hasError) {
                     return const Text(
@@ -167,12 +174,13 @@ class UsageCountLogsScreenState extends State<UsageCountLogsScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.data_usage,
+              UsageCircularIcon(
                 size: 16,
-                color: Colors.blue,
+                isOnline: true,
+                maxUsageCount: maxUsageCount,
+                usageCount: usageCount,
               ),
-              const SizedBox(width: 5),
+              const SizedBox(width: 7),
               Text(
                 "$usageCount/$maxUsageCount",
                 style: const TextStyle(

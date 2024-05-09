@@ -2,6 +2,7 @@ import 'package:claygo_app/core/core.dart';
 import 'package:claygo_app/data/statuses/statuses.dart';
 import 'package:claygo_app/screens/screens.dart';
 import 'package:claygo_app/widgets/toast/toast.dart';
+import 'package:claygo_app/widgets/usage_circular_icon/usage_circular_icon.dart';
 import 'package:claygo_app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -97,36 +98,58 @@ class TablesScreenState extends State<TablesScreen> {
     if (tables.isNotEmpty) {
       for (var i = 0; i < tables.length; i++) {
         final table = tables[i];
-        int statusCount = 0;
-        String status = "";
-        if (table.waterLevel == 0) {
-          status += "Water level: 0%";
-          statusCount++;
-        }
-
-        if (table.dirtLevel == 100) {
-          if (statusCount > 0) {
-            status += ', ';
+        if (table.isOnline) {
+          int statusCount = 0;
+          String status = "";
+          if (table.waterLevel == 0) {
+            status += "Water level: 0%";
+            statusCount++;
           }
-          status += "Dirt level: 100%";
 
-          statusCount++;
-        }
+          if (table.dirtLevel == 100) {
+            if (statusCount > 0) {
+              status += ', ';
+            }
+            status += "Dirt level: 100%";
 
-        if (table.usageCount == 0) {
-          if (statusCount > 0) {
-            status += ', ';
+            statusCount++;
           }
-          status += "Usage count: 0";
-          statusCount++;
-        }
 
-        NotificationService.show(
-          title: table.name,
-          message: "$status. Please check the table immediately.",
-        );
+          if (table.usageCount == 0) {
+            if (statusCount > 0) {
+              status += ', ';
+            }
+            status += "Usage count: 0";
+            statusCount++;
+          }
+          if (status.isNotEmpty) {
+            NotificationService.show(
+              title: table.name,
+              message: "$status. Please check the table immediately.",
+            );
+          }
+        }
       }
     }
+  }
+
+  Color getOfflineOrWarningColor({
+    required bool isOnline,
+    required color,
+    required bool showWarningColor,
+  }) {
+    return isOnline
+        ? showWarningColor
+            ? Colors.red
+            : color
+        : Colors.grey;
+  }
+
+  double getPercentageOf2Numbers({
+    required double startValue,
+    required double endValue,
+  }) {
+    return ((startValue - endValue) / startValue);
   }
 
   @override
@@ -382,25 +405,41 @@ class TablesScreenState extends State<TablesScreen> {
                     ],
                   ),
                   const Divider(thickness: 1),
+                  const SizedBox(height: 5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildTableMiniStatus(
-                        icon: Icons.water_drop,
+                        iconWidget: WaterLevelIcon(
+                          height: 12,
+                          width: 10,
+                          isOnline: table.isOnline,
+                          waterLevel: table.waterLevel,
+                        ),
                         label: waterLevelLabel,
                         showRedHighlight: table.waterLevel == 0,
                         isOnline: table.isOnline,
                       ),
                       const SizedBox(width: 4),
                       _buildTableMiniStatus(
-                        icon: Icons.delete,
+                        iconWidget: DirtLevelIcon(
+                          height: 12,
+                          width: 10,
+                          isOnline: table.isOnline,
+                          dirtLevel: table.dirtLevel,
+                        ),
                         label: dirtLevelLabel,
                         showRedHighlight: table.dirtLevel == 100,
                         isOnline: table.isOnline,
                       ),
                       const SizedBox(width: 4),
                       _buildTableMiniStatus(
-                        icon: Icons.data_usage,
+                        iconWidget: UsageCircularIcon(
+                          size: 13,
+                          isOnline: table.isOnline,
+                          maxUsageCount: table.maxUsageCount,
+                          usageCount: table.usageCount,
+                        ),
                         label: usageCountLabel,
                         showRedHighlight: table.usageCount == 0,
                         isOnline: table.isOnline,
@@ -433,7 +472,8 @@ class TablesScreenState extends State<TablesScreen> {
   }
 
   Widget _buildTableMiniStatus({
-    IconData? icon,
+    IconData? iconData,
+    Widget? iconWidget,
     required String label,
     required bool showRedHighlight,
     required bool isOnline,
@@ -441,15 +481,17 @@ class TablesScreenState extends State<TablesScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 15,
-          color: isOnline
-              ? showRedHighlight
-                  ? Colors.red
-                  : Colors.blue
-              : Colors.grey,
-        ),
+        iconData != null
+            ? Icon(
+                iconData,
+                size: 15,
+                color: isOnline
+                    ? showRedHighlight
+                        ? Colors.red
+                        : Colors.blue
+                    : Colors.grey,
+              )
+            : iconWidget ?? const SizedBox(),
         const SizedBox(width: 5),
         Text(
           label,
@@ -468,7 +510,7 @@ class TablesScreenState extends State<TablesScreen> {
   }
 
   Widget _buildTableButtons({
-    required IconData icon,
+    required IconData? icon,
     required Color iconColor,
     required Function()? onTap,
   }) {

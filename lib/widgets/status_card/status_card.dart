@@ -19,6 +19,7 @@ class StatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(
           7,
         ),
+        border: Border.all(color: Colors.white, width: 3)
       ),
       child: Text(
         isOnline ? "ONLINE" : "OFFLINE",

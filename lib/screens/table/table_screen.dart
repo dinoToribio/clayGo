@@ -87,7 +87,7 @@ class TableScreenState extends State<TableScreen> {
                   table?.name ?? '',
                 ),
                 actions: [
-                 StatusCard(isOnline: isOnline),
+                  StatusCard(isOnline: isOnline),
                   const SizedBox(width: 15),
                 ],
               ),
@@ -123,7 +123,12 @@ class TableScreenState extends State<TableScreen> {
         children: [
           const SizedBox(height: 40),
           _buildItem(
-            icon: Icons.water,
+            iconWidget: WaterLevelIcon(
+              height: 25,
+              width: 20,
+              isOnline: table?.isOnline ?? false,
+              waterLevel: table?.waterLevel ?? 0,
+            ),
             label: "Water Level",
             endLabel: "${table?.waterLevel ?? 0}%",
             showRedHighlight: (table?.waterLevel ?? 0) == 0,
@@ -138,7 +143,12 @@ class TableScreenState extends State<TableScreen> {
             },
           ),
           _buildItem(
-            icon: Icons.delete,
+            iconWidget: DirtLevelIcon(
+              height: 25,
+              width: 20,
+              isOnline: table?.isOnline ?? false,
+              dirtLevel: table?.dirtLevel ?? 0,
+            ),
             label: "Dirt Level",
             endLabel: "${table?.dirtLevel ?? 0}%",
             showRedHighlight: (table?.dirtLevel ?? 0) == 100,
@@ -153,7 +163,13 @@ class TableScreenState extends State<TableScreen> {
             },
           ),
           _buildItem(
-            icon: Icons.data_usage,
+            iconWidget: UsageCircularIcon(
+              size: 25,
+              strokeWidth: 5,
+              isOnline: table?.isOnline ?? false,
+              maxUsageCount: table?.maxUsageCount ?? 0,
+              usageCount: table?.usageCount ?? 0,
+            ),
             label: "Usage Count",
             endLabel: "${table?.usageCount ?? 0}/${table?.maxUsageCount}",
             showRedHighlight: (table?.usageCount ?? 0) == 0,
@@ -183,7 +199,8 @@ class TableScreenState extends State<TableScreen> {
   }
 
   Widget _buildItem({
-    required IconData icon,
+    IconData? icon,
+    Widget? iconWidget,
     required String label,
     required Function()? onTap,
     String? endLabel,
@@ -215,15 +232,17 @@ class TableScreenState extends State<TableScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              size: 30,
-              color: isOnline
-                  ? showRedHighlight
-                      ? Colors.red
-                      : Colors.blue
-                  : Colors.grey,
-            ),
+            icon != null
+                ? Icon(
+                    icon,
+                    size: 30,
+                    color: isOnline
+                        ? showRedHighlight
+                            ? Colors.red
+                            : Colors.blue
+                        : Colors.grey,
+                  )
+                : iconWidget ?? const SizedBox(),
             const SizedBox(width: 20),
             Text(
               label,
