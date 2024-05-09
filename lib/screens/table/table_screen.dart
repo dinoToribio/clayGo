@@ -14,17 +14,25 @@ class TableScreen extends StatefulWidget {
 
 class TableScreenState extends State<TableScreen> {
   data.Table? table;
+
   ValueNotifier<bool> showRedHighlight = ValueNotifier(false);
+
+  ValueNotifier<bool> isTableOnline = ValueNotifier(true);
 
   checkTableIfWorstCondition() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (table != null) {
-        if (table!.dirtLevel == 100 ||
-            table!.waterLevel == 0 ||
-            table!.usageCount == 0) {
-          showRedHighlight.value = true;
+        if (table!.isOnline) {
+          isTableOnline.value = true;
+          if (table!.dirtLevel == 100 ||
+              table!.waterLevel == 0 ||
+              table!.usageCount == 0) {
+            showRedHighlight.value = true;
+          } else {
+            showRedHighlight.value = false;
+          }
         } else {
-          showRedHighlight.value = false;
+          isTableOnline.value = false;
         }
       }
     });
@@ -33,7 +41,8 @@ class TableScreenState extends State<TableScreen> {
   Future<void> resetTable({
     required data.Table table,
   }) async {
-    final status = await data.TablesRepository.resetTableUsageCount(table: table);
+    final status =
+        await data.TablesRepository.resetTableUsageCount(table: table);
     if (mounted) {
       if (status == FirestoreStatuses.success) {
         Navigator.of(context).pop();
@@ -61,39 +70,54 @@ class TableScreenState extends State<TableScreen> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: showRedHighlight,
-      builder: (context, bool showRed, child) {
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: showRed ? Colors.red : Colors.blue,
-            foregroundColor: Colors.white,
-            title: Text(
-              table?.name ?? '',
-            ),
-          ),
-          body: table != null
-              ? StreamBuilder(
-                  stream:
-                      data.TablesRepository.getTable(tableId: table?.id ?? ''),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      table = snapshot.data;
-                      checkTableIfWorstCondition();
-                      return _buildTableItems();
-                    } else if (snapshot.hasError) {
-                      return _buildError();
-                    } else {
-                      return _buildLoading();
-                    }
-                  },
-                )
-              : const SizedBox(),
+      valueListenable: isTableOnline,
+      builder: (context, bool isOnline, child) {
+        return ValueListenableBuilder(
+          valueListenable: showRedHighlight,
+          builder: (context, bool showRed, child) {
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor: isOnline
+                    ? showRed
+                        ? Colors.red
+                        : Colors.blue
+                    : Colors.grey,
+                foregroundColor: Colors.white,
+                title: Text(
+                  table?.name ?? '',
+                ),
+                actions: [
+                 StatusCard(isOnline: isOnline),
+                  const SizedBox(width: 15),
+                ],
+              ),
+              body: table != null
+                  ? StreamBuilder(
+                      stream: data.TablesRepository.getTable(
+                          tableId: table?.id ?? ''),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          table = snapshot.data;
+                          checkTableIfWorstCondition();
+                          return _buildTableItems(
+                            isOnline: table?.isOnline ?? false,
+                          );
+                        } else if (snapshot.hasError) {
+                          return _buildError();
+                        } else {
+                          return _buildLoading();
+                        }
+                      },
+                    )
+                  : const SizedBox(),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildTableItems() {
+  Widget _buildTableItems({required bool isOnline}) {
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -103,6 +127,7 @@ class TableScreenState extends State<TableScreen> {
             label: "Water Level",
             endLabel: "${table?.waterLevel ?? 0}%",
             showRedHighlight: (table?.waterLevel ?? 0) == 0,
+            isOnline: isOnline,
             onTap: () {
               Navigator.of(context).pushNamed(
                 RouteNames.waterLevelLogs,
@@ -117,6 +142,7 @@ class TableScreenState extends State<TableScreen> {
             label: "Dirt Level",
             endLabel: "${table?.dirtLevel ?? 0}%",
             showRedHighlight: (table?.dirtLevel ?? 0) == 100,
+            isOnline: isOnline,
             onTap: () {
               Navigator.of(context).pushNamed(
                 RouteNames.dirtLevelLogs,
@@ -131,6 +157,7 @@ class TableScreenState extends State<TableScreen> {
             label: "Usage Count",
             endLabel: "${table?.usageCount ?? 0}/${table?.maxUsageCount}",
             showRedHighlight: (table?.usageCount ?? 0) == 0,
+            isOnline: isOnline,
             onTap: () {
               Navigator.of(context).pushNamed(
                 RouteNames.usageCountLogs,
@@ -142,6 +169,7 @@ class TableScreenState extends State<TableScreen> {
           ),
           _buildItem(
             icon: Icons.restore,
+            isOnline: isOnline,
             label: "Reset Table",
             onTap: () {
               if (table != null) {
@@ -160,6 +188,7 @@ class TableScreenState extends State<TableScreen> {
     required Function()? onTap,
     String? endLabel,
     bool showRedHighlight = false,
+    bool isOnline = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -175,7 +204,11 @@ class TableScreenState extends State<TableScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
-            color: showRedHighlight ? Colors.red : Colors.blue,
+            color: isOnline
+                ? showRedHighlight
+                    ? Colors.red
+                    : Colors.blue
+                : Colors.grey,
             width: 2,
           ),
         ),
@@ -185,7 +218,11 @@ class TableScreenState extends State<TableScreen> {
             Icon(
               icon,
               size: 30,
-              color: showRedHighlight ? Colors.red : Colors.blue,
+              color: isOnline
+                  ? showRedHighlight
+                      ? Colors.red
+                      : Colors.blue
+                  : Colors.grey,
             ),
             const SizedBox(width: 20),
             Text(

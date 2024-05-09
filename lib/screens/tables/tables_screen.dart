@@ -2,6 +2,7 @@ import 'package:claygo_app/core/core.dart';
 import 'package:claygo_app/data/statuses/statuses.dart';
 import 'package:claygo_app/screens/screens.dart';
 import 'package:claygo_app/widgets/toast/toast.dart';
+import 'package:claygo_app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:claygo_app/data/data.dart' as data;
@@ -297,7 +298,12 @@ class TablesScreenState extends State<TablesScreen> {
     bool showRedHighlight = table.usageCount == 0 ||
         table.dirtLevel == 100 ||
         table.waterLevel == 0;
-    final tableColor = showRedHighlight ? Colors.red : Colors.blue;
+    final tableColor = table.isOnline
+        ? showRedHighlight
+            ? Colors.red
+            : Colors.blue
+        : Colors.grey;
+
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pushNamed(
@@ -307,102 +313,130 @@ class TablesScreenState extends State<TablesScreen> {
           ),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.symmetric(
-          vertical: 10,
-          horizontal: 20,
-        ),
-        padding: const EdgeInsets.symmetric(
-          vertical: 15,
-          horizontal: 20,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            width: showRedHighlight ? 2.5 : 1,
-            color: tableColor,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.table_restaurant_outlined,
-                      size: 30,
-                      color: tableColor,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+      child: Stack(
+        children: [
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 500),
+            opacity: table.isOnline ? 1 : .6,
+            child: Container(
+              margin: const EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 20,
+              ),
+              padding: const EdgeInsets.symmetric(
+                vertical: 15,
+                horizontal: 20,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  width: showRedHighlight ? 3 : 2,
+                  color: tableColor,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.table_restaurant_outlined,
+                            size: 30,
+                            color: tableColor,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            label,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildTableButtons(
-                      icon: Icons.edit,
-                      iconColor: Colors.black,
-                      onTap: () {
-                        _showEditTableDialog(table: table);
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    _buildTableButtons(
-                      icon: Icons.delete,
-                      iconColor: Colors.black,
-                      onTap: () {
-                        _showDeleteTableDialog(table: table);
-                      },
-                    ),
-                  ],
-                )
-              ],
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildTableButtons(
+                            icon: Icons.edit,
+                            iconColor: Colors.black,
+                            onTap: () {
+                              _showEditTableDialog(table: table);
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                          _buildTableButtons(
+                            icon: Icons.delete,
+                            iconColor: Colors.black,
+                            onTap: () {
+                              _showDeleteTableDialog(table: table);
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                  const Divider(thickness: 1),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildTableMiniStatus(
+                        icon: Icons.water_drop,
+                        label: waterLevelLabel,
+                        showRedHighlight: table.waterLevel == 0,
+                        isOnline: table.isOnline,
+                      ),
+                      const SizedBox(width: 4),
+                      _buildTableMiniStatus(
+                        icon: Icons.delete,
+                        label: dirtLevelLabel,
+                        showRedHighlight: table.dirtLevel == 100,
+                        isOnline: table.isOnline,
+                      ),
+                      const SizedBox(width: 4),
+                      _buildTableMiniStatus(
+                        icon: Icons.data_usage,
+                        label: usageCountLabel,
+                        showRedHighlight: table.usageCount == 0,
+                        isOnline: table.isOnline,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const Divider(thickness: 1),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildTableMiniStatus(
-                  icon: Icons.water_drop,
-                  label: waterLevelLabel,
-                  showRedHighlight: table.waterLevel == 0,
+          ),
+          Positioned(
+            right: 15,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              height: 25,
+              width: 25,
+              decoration: BoxDecoration(
+                color: table.isOnline ? Colors.green : Colors.red,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white,
+                  width: 2,
                 ),
-                const SizedBox(width: 4),
-                _buildTableMiniStatus(
-                  icon: Icons.delete,
-                  label: dirtLevelLabel,
-                  showRedHighlight: table.dirtLevel == 100,
-                ),
-                const SizedBox(width: 4),
-                _buildTableMiniStatus(
-                  icon: Icons.data_usage,
-                  label: usageCountLabel,
-                  showRedHighlight: table.usageCount == 0,
-                ),
-              ],
+              ),
             ),
-          ],
-        ),
+          )
+        ],
       ),
     );
   }
 
   Widget _buildTableMiniStatus({
-    required IconData icon,
+    IconData? icon,
     required String label,
     required bool showRedHighlight,
+    required bool isOnline,
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -410,13 +444,21 @@ class TablesScreenState extends State<TablesScreen> {
         Icon(
           icon,
           size: 15,
-          color: showRedHighlight ? Colors.red : Colors.blue,
+          color: isOnline
+              ? showRedHighlight
+                  ? Colors.red
+                  : Colors.blue
+              : Colors.grey,
         ),
         const SizedBox(width: 5),
         Text(
           label,
           style: TextStyle(
-            color: showRedHighlight ? Colors.red : Colors.black,
+            color: isOnline
+                ? showRedHighlight
+                    ? Colors.red
+                    : Colors.black
+                : Colors.grey,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),

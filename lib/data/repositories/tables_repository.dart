@@ -25,6 +25,7 @@ class TablesRepository {
         "name": name,
         "usage_count": maxUsageCount,
         "max_usage_count": maxUsageCount,
+        "is_online": false,
         "water_level": 100,
         "created_datetime": Timestamp.now(),
       });
