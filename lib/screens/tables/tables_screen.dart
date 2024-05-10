@@ -24,6 +24,8 @@ class TablesScreenState extends State<TablesScreen> {
   ///This variables will be used for storing tables from FireStore
   List<data.Table> tables = [];
 
+  int notifId = 0;
+
   Future<void> addTable(BuildContext context) async {
     final status = await data.TablesRepository.addTable(
       name: tableNameTextfield.text,
@@ -99,34 +101,32 @@ class TablesScreenState extends State<TablesScreen> {
       for (var i = 0; i < tables.length; i++) {
         final table = tables[i];
         if (table.isOnline) {
-          int statusCount = 0;
-          String status = "";
           if (table.waterLevel == 0) {
-            status += "Water level: 0%";
-            statusCount++;
+            NotificationService.show(
+              notifId: notifId,
+              title: table.name,
+              message: "Water container is empty. Please fill immediately.",
+            );
+            notifId++;
           }
 
           if (table.dirtLevel == 100) {
-            if (statusCount > 0) {
-              status += ', ';
-            }
-            status += "Dirt level: 100%";
-
-            statusCount++;
+            NotificationService.show(
+              notifId: notifId,
+              title: table.name,
+              message: "Dirt container is full. Please unload immediately.",
+            );
+            notifId++;
           }
 
           if (table.usageCount == 0) {
-            if (statusCount > 0) {
-              status += ', ';
-            }
-            status += "Usage count: 0";
-            statusCount++;
-          }
-          if (status.isNotEmpty) {
             NotificationService.show(
+              notifId: notifId,
               title: table.name,
-              message: "$status. Please check the table immediately.",
+              message:
+                  "Usage count has reached its limit. Please reset the table immediately",
             );
+            notifId;
           }
         }
       }

@@ -24,12 +24,12 @@ class NotificationService {
   }
 
   static Future<void> show({
+    required int notifId,
     required String message,
     required String title,
   }) async {
     // To display the notification in device
     try {
-      final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       NotificationDetails notificationDetails = const NotificationDetails(
         android: AndroidNotificationDetails(
           "claygo_table_notif",
@@ -41,7 +41,7 @@ class NotificationService {
         ),
       );
       await _notificationsPlugin.show(
-        message.hashCode,
+        notifId,
         title,
         message,
         notificationDetails,
